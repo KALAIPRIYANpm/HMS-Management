@@ -1,24 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import UserManagement from './pages/admin/user';
+import AppointmentManagement from './pages/admin/appointment';
+import NFTManagement from './pages/admin/nft-management';
+import TransactionManagement from './pages/admin/transactions';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/admin/users" element={<UserManagement />} />
+        <Route path="/admin/appointments" element={<AppointmentManagement />} />
+        <Route path="/admin/nft" element={<NFTManagement />} />
+        <Route path="/admin/transactions" element={<TransactionManagement />} />
+        <Route path="/" element={<Dashboard/>}/>
+      </Routes>
+    </Router>
   );
 }
 
