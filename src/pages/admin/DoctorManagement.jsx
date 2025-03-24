@@ -1,58 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Box,
+  Button,
   Container,
+  Grid,
+  Typography,
   Card,
   CardContent,
-  Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  IconButton,
+  CardActions,
   Modal,
-  Box,
   TextField,
-  MenuItem,
+  CircularProgress,
 } from '@mui/material';
-import { addDoctor, getAllDoctors, deleteDoctor } from '../../api/doctorService';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
+import axios from 'axios';
 
 const DoctorManagement = () => {
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [newDoctor, setNewDoctor] = useState({
+  const [formData, setFormData] = useState({
+    doctorID: '',
     name: '',
     specialization: '',
+    contactNumber: '',
     email: '',
-    phone: '',
-    availableDays: [],
+    address: '',
   });
 
-  // Open/Close Modal
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-  
-  // Open/Close Confirmation Modal
-  const handleConfirmOpen = (doctor) => {
-    setSelectedDoctor(doctor);
-    setConfirmOpen(true);
-  };
-
-  const handleConfirmClose = () => {
-    setSelectedDoctor(null);
-    setConfirmOpen(false);
-  };
-
-  // Fetch All Doctors
+  // Fetch doctors from the backend
   const fetchDoctors = async () => {
     try {
-      const res = await getAllDoctors();
+      const res = await axios.get('http://localhost:5000/api/doctors/all');
       setDoctors(res.data);
-    } catch (err) {
-      console.error('Error fetching doctors:', err);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      setLoading(false);
     }
   };
 
@@ -60,114 +46,136 @@ const DoctorManagement = () => {
     fetchDoctors();
   }, []);
 
-  // Handle Input Change
+  // Handle opening/closing the modal
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  // Handle input change in modal
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewDoctor({ ...newDoctor, [name]: value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Add New Doctor
-  const handleAddDoctor = async () => {
-    try {
-      // ✅ Ensure availableDays is an array (trim whitespace)
-      const formattedDoctor = {
-        ...newDoctor,
-        availableDays: newDoctor.availableDays.map(day => day.trim())
-      };
+  // Handle adding a new doctor
+  const handleSubmit = async () => {
+    console.log('Form Data:', formData); // ✅ Debug incoming data before sending
   
-      await addDoctor(formattedDoctor);
-      fetchDoctors();
-      setNewDoctor({ name: '', specialization: '', email: '', phone: '', availableDays: [] });
-      handleClose();
-    } catch (err) {
-      console.error("Error adding doctor:", err);
+    try {
+      await axios.post('http://localhost:5000/api/doctors/add', formData);
+      fetchDoctors(); // Refresh doctor list
+      handleClose(); // Close modal
+      setFormData({
+        doctorID: '',
+        name: '',
+        specialization: '',
+        contactNumber: '', // ✅ Check this name
+        email: '',
+        address: '',
+      });
+    } catch (error) {
+      console.error('Error adding doctor:', error.response?.data || error.message);
     }
   };
   
 
-  // Delete Doctor
-  const handleDeleteDoctor = async (id) => {
-    try {
-      await deleteDoctor(id);
-      fetchDoctors(); // Refresh the list after deletion
-    } catch (err) {
-      console.error('Error deleting doctor:', err);
+  // Handle deleting a doctor
+  const handleDelete = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete Dr. ${name}?`)) {
+      try {
+        await axios.delete(`http://localhost:5000/api/doctors/${id}`);
+        fetchDoctors();
+      } catch (error) {
+        console.error('Error deleting doctor:', error);
+      }
     }
   };
-  
+
+  // Modal styling
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: 2,
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Card sx={{ mb: 4, backgroundColor: '#e3f2fd', boxShadow: 3 }}>
-        <CardContent>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Doctor Management
-          </Typography>
-          <Button variant="contained" color="primary" onClick={handleOpen} sx={{ mb: 2 }}>
-            Add New Doctor
-          </Button>
+    <Container maxWidth="lg" sx={{ mt: 5 }}>
+      {/* Header and Add Button */}
+      <Box display="flex" justifyContent="space-between" mb={3}>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          Doctor Management
+        </Typography>
+        <Button variant="contained" color="secondary" onClick={handleOpen}>
+          Add Doctor
+        </Button>
+      </Box>
 
-          {/* Doctor List Table */}
-          <TableContainer component={Card} sx={{ boxShadow: 3 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Specialization</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Phone</TableCell>
-                  <TableCell>Available Days</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {doctors.map((doc) => (
-                  <TableRow key={doc._id}>
-                    <TableCell>{doc.name}</TableCell>
-                    <TableCell>{doc.specialization}</TableCell>
-                    <TableCell>{doc.email}</TableCell>
-                    <TableCell>{doc.phone}</TableCell>
-                    <TableCell>{doc.availableDays.join(', ')}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={() => handleConfirmOpen(doc)}
-                        sx={{ mr: 1 }}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+      {/* Doctor List */}
+      {loading ? (
+        <CircularProgress style={{ marginTop: '20px' }} />
+      ) : (
+        <Grid container spacing={3} sx={{ mt: 2 }}>
+          {doctors.map((doctor) => (
+            <Grid item xs={12} sm={6} md={4} key={doctor._id}>
+              <Card sx={{ maxWidth: 345, boxShadow: 3, borderRadius: 2 }}>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold">
+                    {doctor.name}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Specialization: {doctor.specialization}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Phone: {doctor.contactNumber}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Email: {doctor.email}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Address: {doctor.address}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDelete(doctor._id, doctor.name)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       {/* Add Doctor Modal */}
       <Modal open={open} onClose={handleClose}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Add New Doctor
-          </Typography>
+        <Box sx={modalStyle}>
+          <Box display="flex" justifyContent="space-between" mb={2}>
+            <Typography variant="h6">Add New Doctor</Typography>
+            <IconButton onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          <TextField
+            fullWidth
+            label="Doctor ID"
+            name="doctorID"
+            value={formData.doctorID}
+            onChange={handleChange}
+            margin="normal"
+          />
           <TextField
             fullWidth
             label="Name"
             name="name"
-            value={newDoctor.name}
+            value={formData.name}
             onChange={handleChange}
             margin="normal"
           />
@@ -175,7 +183,15 @@ const DoctorManagement = () => {
             fullWidth
             label="Specialization"
             name="specialization"
-            value={newDoctor.specialization}
+            value={formData.specialization}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Phone Number"
+            name="contactNumber"
+            value={formData.contactNumber}
             onChange={handleChange}
             margin="normal"
           />
@@ -183,56 +199,21 @@ const DoctorManagement = () => {
             fullWidth
             label="Email"
             name="email"
-            value={newDoctor.email}
+            value={formData.email}
             onChange={handleChange}
             margin="normal"
           />
           <TextField
             fullWidth
-            label="Phone"
-            name="phone"
-            value={newDoctor.phone}
+            label="Address"
+            name="address"
+            value={formData.address}
             onChange={handleChange}
             margin="normal"
           />
-          <TextField
-            fullWidth
-            label="Available Days (Comma-separated)"
-            name="availableDays"
-            value={newDoctor.availableDays}
-            onChange={(e) => setNewDoctor({ ...newDoctor, availableDays: e.target.value.split(',') })}
-            margin="normal"
-          />
-          <Button variant="contained" color="primary" onClick={handleAddDoctor} sx={{ mt: 2 }}>
-            Add Doctor
-          </Button>
-        </Box>
-      </Modal>
-
-      {/* Confirmation Modal */}
-      <Modal open={confirmOpen} onClose={handleConfirmClose}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 300,
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Are you sure you want to remove this doctor?
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-            <Button variant="contained" color="error" onClick={handleDeleteDoctor}>
-              Yes, Remove
-            </Button>
-            <Button variant="outlined" onClick={handleConfirmClose}>
-              Cancel
+          <Box mt={2} textAlign="right">
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
+              Add Doctor
             </Button>
           </Box>
         </Box>
