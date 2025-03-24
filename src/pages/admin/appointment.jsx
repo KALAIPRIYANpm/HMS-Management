@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
-import { Container, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Modal, Box, TextField, MenuItem } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Modal,
+  Box,
+  TextField,
+  MenuItem,
+} from '@mui/material';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-
-const data = [
-  { name: 'Completed', value: 60 },
-  { name: 'Pending', value: 30 },
-  { name: 'Cancelled', value: 10 },
-];
+import {
+  getAppointments,
+  addAppointment,
+  deleteAppointment,
+} from '../../api/appointmentService';
 
 const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
 
-const AppointmentPage = () => {
-  const [appointments, setAppointments] = useState([
-    { id: 1, patient: 'John Doe', doctor: 'Dr. Smith', date: '2025-04-01', status: 'Completed' },
-    { id: 2, patient: 'Jane Smith', doctor: 'Dr. Brown', date: '2025-04-05', status: 'Pending' },
-  ]);
-
+const Appointments = () => {
+  const [appointments, setAppointments] = useState([]);
   const [open, setOpen] = useState(false);
   const [newAppointment, setNewAppointment] = useState({
     patient: '',
@@ -25,20 +36,68 @@ const AppointmentPage = () => {
     status: 'Pending',
   });
 
+  // Fetch appointments on page load
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  // Fetch Appointments from API
+  const fetchAppointments = async () => {
+    try {
+      const data = await getAppointments();
+      setAppointments(data);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  };
+
+  // Handle Modal Open/Close
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  // Handle Form Change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewAppointment({ ...newAppointment, [name]: value });
   };
 
-  const handleAddAppointment = () => {
-    const newApp = { ...newAppointment, id: appointments.length + 1 };
-    setAppointments([...appointments, newApp]);
-    setNewAppointment({ patient: '', doctor: '', date: '', status: 'Pending' });
-    handleClose();
+  // Add New Appointment
+  const handleAddAppointment = async () => {
+    try {
+      await addAppointment(newAppointment);
+      fetchAppointments();
+      setNewAppointment({ patient: '', doctor: '', date: '', status: 'Pending' });
+      handleClose();
+    } catch (error) {
+      console.error('Error adding appointment:', error);
+    }
   };
+
+  // Delete Appointment
+  const handleDeleteAppointment = async (id) => {
+    try {
+      await deleteAppointment(id);
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+    }
+  };
+
+  // Generate Pie Chart Data Based on Appointments
+  const pieData = [
+    {
+      name: 'Completed',
+      value: appointments.filter((app) => app.status === 'Completed').length,
+    },
+    {
+      name: 'Pending',
+      value: appointments.filter((app) => app.status === 'Pending').length,
+    },
+    {
+      name: 'Cancelled',
+      value: appointments.filter((app) => app.status === 'Cancelled').length,
+    },
+  ];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -60,15 +119,25 @@ const AppointmentPage = () => {
                     <TableCell>Doctor</TableCell>
                     <TableCell>Date</TableCell>
                     <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {appointments.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.patient}</TableCell>
-                      <TableCell>{row.doctor}</TableCell>
+                    <TableRow key={row._id}>
+                      <TableCell>{row.patientName}</TableCell>
+                      <TableCell>{row.doctorName}</TableCell>
                       <TableCell>{row.date}</TableCell>
                       <TableCell>{row.status}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => handleDeleteAppointment(row._id)}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -85,8 +154,8 @@ const AppointmentPage = () => {
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
-                    {data.map((entry, index) => (
+                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
+                    {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -119,16 +188,16 @@ const AppointmentPage = () => {
           <TextField
             fullWidth
             label="Patient Name"
-            name="patient"
-            value={newAppointment.patient}
+            name="patientName"
+            value={newAppointment.patientName}
             onChange={handleChange}
             margin="normal"
           />
           <TextField
             fullWidth
             label="Doctor"
-            name="doctor"
-            value={newAppointment.doctor}
+            name="doctorName"
+            value={newAppointment.doctorName}
             onChange={handleChange}
             margin="normal"
           />
@@ -164,4 +233,4 @@ const AppointmentPage = () => {
   );
 };
 
-export default AppointmentPage;
+export default Appointments;

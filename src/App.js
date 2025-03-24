@@ -5,6 +5,7 @@ import AppointmentManagement from './pages/admin/appointment';
 import NFTManagement from './pages/admin/nft-management';
 import TransactionManagement from './pages/admin/transactions';
 import Dashboard from './pages/Dashboard';
+import DoctorManagement from './pages/admin/DoctorManagement';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/admin/nft" element={<NFTManagement />} />
         <Route path="/admin/transactions" element={<TransactionManagement />} />
         <Route path="/" element={<Dashboard/>}/>
+        <Route path='/admin/doctormanagement' element={<DoctorManagement/>}/>
       </Routes>
     </Router>
   );

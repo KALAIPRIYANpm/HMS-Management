@@ -8,7 +8,7 @@ const data = [
   { name: "Appointments", value: 240, path: "/admin/appointments" },
   { name: "Users", value: 320, path: "/admin/users" },
   { name: "NFTs", value: 180, path: "/admin/nft" },
-  { name: "Transactions", value: 270, path: "/admin/transactions" },
+  { name: "Doctors", value: 270, path: "/admin/doctormanagement" },
 ];
 
 const Dashboard = () => {
