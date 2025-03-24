@@ -15,7 +15,6 @@ import {
   Box,
   TextField,
   MenuItem,
-  Grid,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
@@ -27,58 +26,56 @@ import {
 
 const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
 
-const Appointments = () => {
+const pharmacists = ['John Doe', 'Jane Smith', 'Robert Johnson']; // Sample Pharmacist List
+
+const PharmacyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
-  const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [open, setOpen] = useState(false);
+  const [selectedPharmacist, setSelectedPharmacist] = useState('');
   const [newAppointment, setNewAppointment] = useState({
-    patientName: '',
-    doctorName: '',
+    patient: '',
+    doctor: '',
+    pharmacist: '',
     date: '',
     status: 'Pending',
   });
-  const [filterStatus, setFilterStatus] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch appointments on page load
   useEffect(() => {
     fetchAppointments();
   }, []);
 
-  // Fetch Appointments from API
   const fetchAppointments = async () => {
     try {
       const data = await getAppointments();
       setAppointments(data);
-      setFilteredAppointments(data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
     }
   };
 
-  // Handle Modal Open/Close
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // Handle Form Change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewAppointment({ ...newAppointment, [name]: value });
   };
 
-  // Add New Appointment
+  const handlePharmacistChange = (e) => {
+    setSelectedPharmacist(e.target.value);
+  };
+
   const handleAddAppointment = async () => {
     try {
       await addAppointment(newAppointment);
       fetchAppointments();
-      setNewAppointment({ patientName: '', doctorName: '', date: '', status: 'Pending' });
+      setNewAppointment({ patient: '', doctor: '', pharmacist: '', date: '', status: 'Pending' });
       handleClose();
     } catch (error) {
       console.error('Error adding appointment:', error);
     }
   };
 
-  // Delete Appointment
   const handleDeleteAppointment = async (id) => {
     try {
       await deleteAppointment(id);
@@ -88,38 +85,9 @@ const Appointments = () => {
     }
   };
 
-  // Generate Pie Chart Data Based on Appointments
-  const pieData = [
-    {
-      name: 'Completed',
-      value: appointments.filter((app) => app.status === 'Completed').length,
-    },
-    {
-      name: 'Pending',
-      value: appointments.filter((app) => app.status === 'Pending').length,
-    },
-    {
-      name: 'Cancelled',
-      value: appointments.filter((app) => app.status === 'Cancelled').length,
-    },
-  ];
-
-  // Filter Logic for Appointments
-  useEffect(() => {
-    let filtered = appointments;
-
-    if (filterStatus) {
-      filtered = filtered.filter((app) => app.status === filterStatus);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter((app) =>
-        app.patientName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredAppointments(filtered);
-  }, [filterStatus, searchQuery, appointments]);
+  const filteredAppointments = selectedPharmacist
+    ? appointments.filter((app) => app.pharmacist === selectedPharmacist)
+    : appointments;
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -133,41 +101,30 @@ const Appointments = () => {
               Add Appointment
             </Button>
 
-            {/* Filters Section */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} sm={6} md={4}>
-                <TextField
-                  fullWidth
-                  label="Search by Patient Name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Filter by Status"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  variant="outlined"
-                >
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="Pending">Pending</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
-                  <MenuItem value="Cancelled">Cancelled</MenuItem>
-                </TextField>
-              </Grid>
-            </Grid>
+            {/* Pharmacist Filter Dropdown */}
+            <TextField
+              select
+              label="Filter by Pharmacist"
+              value={selectedPharmacist}
+              onChange={handlePharmacistChange}
+              fullWidth
+              sx={{ mb: 2 }}
+            >
+              <MenuItem value="">All Pharmacists</MenuItem>
+              {pharmacists.map((pharmacist, index) => (
+                <MenuItem key={index} value={pharmacist}>
+                  {pharmacist}
+                </MenuItem>
+              ))}
+            </TextField>
 
-            {/* Appointments Table */}
             <TableContainer component={Card} sx={{ boxShadow: 3 }}>
               <Table>
                 <TableHead>
                   <TableRow>
                     <TableCell>Patient</TableCell>
                     <TableCell>Doctor</TableCell>
+                    <TableCell>Pharmacist</TableCell>
                     <TableCell>Date</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Actions</TableCell>
@@ -178,6 +135,7 @@ const Appointments = () => {
                     <TableRow key={row._id}>
                       <TableCell>{row.patientName}</TableCell>
                       <TableCell>{row.doctorName}</TableCell>
+                      <TableCell>{row.pharmacist}</TableCell>
                       <TableCell>{row.date}</TableCell>
                       <TableCell>{row.status}</TableCell>
                       <TableCell>
@@ -205,8 +163,8 @@ const Appointments = () => {
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
-                    {pieData.map((entry, index) => (
+                  <Pie data={filteredAppointments} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
+                    {filteredAppointments.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -254,6 +212,14 @@ const Appointments = () => {
           />
           <TextField
             fullWidth
+            label="Pharmacist"
+            name="pharmacist"
+            value={newAppointment.pharmacist}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
             label="Date"
             name="date"
             type="date"
@@ -284,4 +250,4 @@ const Appointments = () => {
   );
 };
 
-export default Appointments;
+export default PharmacyAppointments;
