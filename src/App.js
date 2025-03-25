@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import DoctorManagement from './pages/admin/DoctorManagement';
 import PharmacyAppointments from './pages/admin/pharmacistManagement';
 import OutpatientManager from './pages/outPatient';
+import PharmacistManager from './pages/admin/pharmacistManagement';
 
 function App() {
   return (
@@ -19,7 +20,7 @@ function App() {
         <Route path="/admin/transactions" element={<TransactionManagement />} />
         <Route path="/" element={<Dashboard/>}/>
         <Route path='/admin/doctormanagement' element={<DoctorManagement/>}/>
-        <Route path='/admin/pharmacyManagement' element={<PharmacyAppointments/>}/>
+        <Route path='/admin/pharmacyManagement' element={<PharmacistManager/>}/>
         <Route path='/admin/outpatientManagement' element={<OutpatientManager/>}/>
       </Routes>
     </Router>

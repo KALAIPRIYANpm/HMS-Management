@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Card,
@@ -14,138 +14,90 @@ import {
   Modal,
   Box,
   TextField,
-  MenuItem,
+  IconButton,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { motion } from 'framer-motion';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import {
-  getAppointments,
-  addAppointment,
-  deleteAppointment,
-} from '../../api/appointmentService';
 
-const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
-
-const pharmacists = ['John Doe', 'Jane Smith', 'Robert Johnson']; // Sample Pharmacist List
-
-const PharmacyAppointments = () => {
-  const [appointments, setAppointments] = useState([]);
+const PharmacistManager = () => {
   const [open, setOpen] = useState(false);
-  const [selectedPharmacist, setSelectedPharmacist] = useState('');
-  const [newAppointment, setNewAppointment] = useState({
-    patient: '',
-    doctor: '',
-    pharmacist: '',
-    date: '',
-    status: 'Pending',
-  });
 
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
+  // Dummy Pharmacists Data
+  const dummyPharmacists = [
+    {
+      id: 1,
+      name: 'Alice Smith',
+      email: 'alice.pharma@example.com',
+      phone: '9876543210',
+      shift: 'Morning',
+      status: 'Active',
+    },
+    {
+      id: 2,
+      name: 'Bob Johnson',
+      email: 'bob.johnson@example.com',
+      phone: '9876509876',
+      shift: 'Night',
+      status: 'Inactive',
+    },
+  ];
 
-  const fetchAppointments = async () => {
-    try {
-      const data = await getAppointments();
-      setAppointments(data);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-    }
+  // Modal Styling
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 500,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: 2,
   };
 
+  // Handle Modal Open/Close
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewAppointment({ ...newAppointment, [name]: value });
-  };
-
-  const handlePharmacistChange = (e) => {
-    setSelectedPharmacist(e.target.value);
-  };
-
-  const handleAddAppointment = async () => {
-    try {
-      await addAppointment(newAppointment);
-      fetchAppointments();
-      setNewAppointment({ patient: '', doctor: '', pharmacist: '', date: '', status: 'Pending' });
-      handleClose();
-    } catch (error) {
-      console.error('Error adding appointment:', error);
-    }
-  };
-
-  const handleDeleteAppointment = async (id) => {
-    try {
-      await deleteAppointment(id);
-      fetchAppointments();
-    } catch (error) {
-      console.error('Error deleting appointment:', error);
-    }
-  };
-
-  const filteredAppointments = selectedPharmacist
-    ? appointments.filter((app) => app.pharmacist === selectedPharmacist)
-    : appointments;
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <Card sx={{ mb: 4, backgroundColor: '#fff8e1', boxShadow: 3 }}>
+        <Card sx={{ mb: 4, backgroundColor: '#e3f2fd', boxShadow: 3 }}>
           <CardContent>
             <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Appointment Management
+              Pharmacist Management
             </Typography>
+
+            {/* Register New Pharmacist Button */}
             <Button variant="contained" color="primary" onClick={handleOpen} sx={{ mb: 2 }}>
-              Add Appointment
+              Register New Pharmacist
             </Button>
 
-            {/* Pharmacist Filter Dropdown */}
-            <TextField
-              select
-              label="Filter by Pharmacist"
-              value={selectedPharmacist}
-              onChange={handlePharmacistChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            >
-              <MenuItem value="">All Pharmacists</MenuItem>
-              {pharmacists.map((pharmacist, index) => (
-                <MenuItem key={index} value={pharmacist}>
-                  {pharmacist}
-                </MenuItem>
-              ))}
-            </TextField>
-
+            {/* Pharmacist Table */}
             <TableContainer component={Card} sx={{ boxShadow: 3 }}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Patient</TableCell>
-                    <TableCell>Doctor</TableCell>
-                    <TableCell>Pharmacist</TableCell>
-                    <TableCell>Date</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Phone</TableCell>
+                    <TableCell>Shift</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredAppointments.map((row) => (
-                    <TableRow key={row._id}>
-                      <TableCell>{row.patientName}</TableCell>
-                      <TableCell>{row.doctorName}</TableCell>
-                      <TableCell>{row.pharmacist}</TableCell>
-                      <TableCell>{row.date}</TableCell>
+                  {dummyPharmacists.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.email}</TableCell>
+                      <TableCell>{row.phone}</TableCell>
+                      <TableCell>{row.shift}</TableCell>
                       <TableCell>{row.status}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="outlined"
-                          color="secondary"
-                          onClick={() => handleDeleteAppointment(row._id)}
-                        >
-                          Delete
-                        </Button>
+                        <IconButton color="error">
+                          <DeleteIcon />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -154,95 +106,21 @@ const PharmacyAppointments = () => {
             </TableContainer>
           </CardContent>
         </Card>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <Card sx={{ boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h5" gutterBottom>
-                Appointment Overview
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie data={filteredAppointments} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
-                    {filteredAppointments.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
       </motion.div>
 
-      {/* Add Appointment Modal */}
+      {/* Register Pharmacist Modal */}
       <Modal open={open} onClose={handleClose}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
+        <Box sx={modalStyle}>
           <Typography variant="h6" gutterBottom>
-            Add New Appointment
+            Register New Pharmacist
           </Typography>
-          <TextField
-            fullWidth
-            label="Patient Name"
-            name="patientName"
-            value={newAppointment.patientName}
-            onChange={handleChange}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Doctor"
-            name="doctorName"
-            value={newAppointment.doctorName}
-            onChange={handleChange}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Pharmacist"
-            name="pharmacist"
-            value={newAppointment.pharmacist}
-            onChange={handleChange}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Date"
-            name="date"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={newAppointment.date}
-            onChange={handleChange}
-            margin="normal"
-          />
-          <TextField
-            select
-            fullWidth
-            label="Status"
-            name="status"
-            value={newAppointment.status}
-            onChange={handleChange}
-            margin="normal"
-          >
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="Completed">Completed</MenuItem>
-            <MenuItem value="Cancelled">Cancelled</MenuItem>
-          </TextField>
-          <Button variant="contained" color="primary" onClick={handleAddAppointment} sx={{ mt: 2 }}>
-            Add Appointment
+          <TextField fullWidth label="Name" name="name" margin="normal" />
+          <TextField fullWidth label="Email" name="email" margin="normal" />
+          <TextField fullWidth label="Phone Number" name="phone" margin="normal" />
+          <TextField fullWidth label="Shift (e.g., Morning/Night)" name="shift" margin="normal" />
+          <TextField fullWidth label="Status (e.g., Active/Inactive)" name="status" margin="normal" />
+          <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+            Register Pharmacist
           </Button>
         </Box>
       </Modal>
@@ -250,4 +128,4 @@ const PharmacyAppointments = () => {
   );
 };
 
-export default PharmacyAppointments;
+export default PharmacistManager;
