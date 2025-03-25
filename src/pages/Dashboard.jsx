@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const data = [
-  { name: "Appointments", value: 240, path: "/admin/appointments" },
-  { name: "Pharmacist", value: 320, path: "/admin/pharmacyManagement" },
-  { name: "Outpatient Management", value: 180, path: "/admin/outpatientManagement" },
-  { name: "Doctors", value: 270, path: "/admin/doctormanagement" },
+  { name: "Appointments", value: 100, path: "/admin/appointments" },
+  { name: "Pharmacist", value: 10, path: "/admin/pharmacyManagement" },
+  { name: "Outpatient Management", value: 10, path: "/admin/outpatientManagement" },
+  { name: "Doctors", value: 20, path: "/admin/doctormanagement" },
 ];
 
 const Dashboard = () => {
