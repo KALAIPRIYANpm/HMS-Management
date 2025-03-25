@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Card,
@@ -15,49 +15,104 @@ import {
   Box,
   TextField,
   IconButton,
+  Grid,
+  useMediaQuery,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
 const PharmacistManager = () => {
   const [open, setOpen] = useState(false);
+  const [pharmacists, setPharmacists] = useState([]);
+  const [formData, setFormData] = useState({
+    pharmacistID: '',
+    name: '',
+    specialization: '',
+    email: '',
+    contactNumber: '',
+    shift: '',
+    status: '',
+    address: '',
+  });
+  const [editId, setEditId] = useState(null);
 
-  // Dummy Pharmacists Data
-  const dummyPharmacists = [
-    {
-      id: 1,
-      name: 'Alice Smith',
-      email: 'alice.pharma@example.com',
-      phone: '9876543210',
-      shift: 'Morning',
-      status: 'Active',
-    },
-    {
-      id: 2,
-      name: 'Bob Johnson',
-      email: 'bob.johnson@example.com',
-      phone: '9876509876',
-      shift: 'Night',
-      status: 'Inactive',
-    },
-  ];
+  const isMobile = useMediaQuery('(max-width:600px)');
 
-  // Modal Styling
+  useEffect(() => {
+    fetchPharmacists();
+  }, []);
+
+  const fetchPharmacists = async () => {
+    try {
+      const { data } = await axios.get('http://localhost:5000/api/pharmacists');
+      setPharmacists(data);
+    } catch (error) {
+      console.error('Error fetching pharmacists:', error);
+    }
+  };
+
+  const handleOpen = (pharmacist = null) => {
+    if (pharmacist) {
+      setFormData(pharmacist);
+      setEditId(pharmacist._id);
+    } else {
+      setFormData({
+        pharmacistID: '',
+        name: '',
+        specialization: '',
+        email: '',
+        contactNumber: '',
+        shift: '',
+        status: '',
+        address: '',
+      });
+      setEditId(null);
+    }
+    setOpen(true);
+  };
+
+  const handleClose = () => setOpen(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSavePharmacist = async () => {
+    try {
+      if (editId) {
+        await axios.put(`http://localhost:5000/api/pharmacists/${editId}`, formData);
+      } else {
+        await axios.post('http://localhost:5000/api/pharmacists', formData);
+      }
+      fetchPharmacists();
+      handleClose();
+    } catch (error) {
+      console.error('Error saving pharmacist:', error);
+    }
+  };
+
+  const handleDeletePharmacist = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/pharmacists/${id}`);
+      fetchPharmacists();
+    } catch (error) {
+      console.error('Error deleting pharmacist:', error);
+    }
+  };
+
   const modalStyle = {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 500,
+    width: isMobile ? '90%' : 500,
     bgcolor: 'background.paper',
     boxShadow: 24,
     p: 4,
     borderRadius: 2,
   };
-
-  // Handle Modal Open/Close
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -68,17 +123,17 @@ const PharmacistManager = () => {
               Pharmacist Management
             </Typography>
 
-            {/* Register New Pharmacist Button */}
-            <Button variant="contained" color="primary" onClick={handleOpen} sx={{ mb: 2 }}>
+            <Button variant="contained" color="primary" onClick={() => handleOpen()} sx={{ mb: 2 }}>
               Register New Pharmacist
             </Button>
 
-            {/* Pharmacist Table */}
             <TableContainer component={Card} sx={{ boxShadow: 3 }}>
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell>ID</TableCell>
                     <TableCell>Name</TableCell>
+                    <TableCell>Specialization</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
                     <TableCell>Shift</TableCell>
@@ -87,15 +142,20 @@ const PharmacistManager = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {dummyPharmacists.map((row) => (
-                    <TableRow key={row.id}>
+                  {pharmacists.map((row) => (
+                    <TableRow key={row._id}>
+                      <TableCell>{row.pharmacistID}</TableCell>
                       <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.specialization}</TableCell>
                       <TableCell>{row.email}</TableCell>
-                      <TableCell>{row.phone}</TableCell>
+                      <TableCell>{row.contactNumber}</TableCell>
                       <TableCell>{row.shift}</TableCell>
                       <TableCell>{row.status}</TableCell>
                       <TableCell>
-                        <IconButton color="error">
+                        <IconButton color="primary" onClick={() => handleOpen(row)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton color="error" onClick={() => handleDeletePharmacist(row._id)}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -108,20 +168,45 @@ const PharmacistManager = () => {
         </Card>
       </motion.div>
 
-      {/* Register Pharmacist Modal */}
+      {/* Modal for Adding/Editing Pharmacist */}
       <Modal open={open} onClose={handleClose}>
         <Box sx={modalStyle}>
           <Typography variant="h6" gutterBottom>
-            Register New Pharmacist
+            {editId ? 'Edit Pharmacist' : 'Register New Pharmacist'}
           </Typography>
-          <TextField fullWidth label="Name" name="name" margin="normal" />
-          <TextField fullWidth label="Email" name="email" margin="normal" />
-          <TextField fullWidth label="Phone Number" name="phone" margin="normal" />
-          <TextField fullWidth label="Shift (e.g., Morning/Night)" name="shift" margin="normal" />
-          <TextField fullWidth label="Status (e.g., Active/Inactive)" name="status" margin="normal" />
-          <Button variant="contained" color="primary" sx={{ mt: 2 }}>
-            Register Pharmacist
-          </Button>
+          <Grid container spacing={2}>
+            {[
+              { label: 'Pharmacist ID', name: 'pharmacistID' },
+              { label: 'Name', name: 'name' },
+              { label: 'Specialization', name: 'specialization' },
+              { label: 'Email', name: 'email' },
+              { label: 'Phone Number', name: 'contactNumber' },
+              { label: 'Shift (e.g., Morning/Night)', name: 'shift' },
+              { label: 'Status (e.g., Active/Inactive)', name: 'status' },
+              { label: 'Address', name: 'address' },
+            ].map((field, index) => (
+              <Grid item xs={12} sm={6} key={index}>
+                <TextField
+                  fullWidth
+                  label={field.label}
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+              </Grid>
+            ))}
+          </Grid>
+          <Box mt={2} display="flex" justifyContent="flex-end">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSavePharmacist}
+              sx={{ mt: 2 }}
+            >
+              {editId ? 'Update Pharmacist' : 'Register Pharmacist'}
+            </Button>
+          </Box>
         </Box>
       </Modal>
     </Container>

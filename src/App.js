@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import DoctorManagement from './pages/admin/DoctorManagement';
 import PharmacyAppointments from './pages/admin/pharmacistManagement';
 import OutpatientManager from './pages/outPatient';
+// import PharmacistForm from './pages/admin/pharmacistManagement';
 import PharmacistManager from './pages/admin/pharmacistManagement';
 
 function App() {
