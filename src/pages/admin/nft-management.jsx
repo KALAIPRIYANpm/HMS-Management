@@ -43,6 +43,8 @@ const nftChartData = [
   { name: "Apr", value: 12 },
 ];
 
+//the NFT consist of the Unique id for the Each data 
+
 const NFTManagement = () => {
   const [showForm, setShowForm] = useState(false);
   const [nftList, setNftList] = useState(nftData);
