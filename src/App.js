@@ -10,6 +10,7 @@ import PharmacyAppointments from './pages/admin/pharmacistManagement';
 import OutpatientManager from './pages/outPatient';
 // import PharmacistForm from './pages/admin/pharmacistManagement';
 import PharmacistManager from './pages/admin/pharmacistManagement';
+import AdminLogin from './pages/admin/AdminLogin';
 
 function App() {
   return (
@@ -19,10 +20,11 @@ function App() {
         <Route path="/admin/appointments" element={<AppointmentManagement />} />
         <Route path="/admin/nft" element={<NFTManagement />} />
         <Route path="/admin/transactions" element={<TransactionManagement />} />
-        <Route path="/" element={<Dashboard/>}/>
+        <Route path="/dashboard" element={<Dashboard/>}/>
         <Route path='/admin/doctormanagement' element={<DoctorManagement/>}/>
         <Route path='/admin/pharmacyManagement' element={<PharmacistManager/>}/>
-        <Route path='/admin/outpatientManagement' element={<OutpatientManager/>}/>
+        <Route path='/admin/outpatientManagement' element={<OutpatientManager/>}/>\
+        <Route path='/' element={<AdminLogin/>}/>
       </Routes>
     </Router>
   );
