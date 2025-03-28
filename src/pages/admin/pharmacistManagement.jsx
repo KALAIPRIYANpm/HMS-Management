@@ -17,6 +17,7 @@ import {
   IconButton,
   Grid,
   useMediaQuery,
+  Paper,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -111,51 +112,95 @@ const PharmacistManager = () => {
     bgcolor: 'background.paper',
     boxShadow: 24,
     p: 4,
-    borderRadius: 2,
+    borderRadius: 3,
   };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <Card sx={{ mb: 4, backgroundColor: '#e3f2fd', boxShadow: 3 }}>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <Card
+          sx={{
+            mb: 4,
+            backgroundColor: '#f5f5f5',
+            boxShadow: 5,
+            borderRadius: 3,
+          }}
+        >
           <CardContent>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#1565c0' }}>
               Pharmacist Management
             </Typography>
 
-            <Button variant="contained" color="primary" onClick={() => handleOpen()} sx={{ mb: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleOpen()}
+              sx={{
+                mb: 2,
+                background: 'linear-gradient(45deg, #42a5f5, #1e88e5)',
+                '&:hover': { background: 'linear-gradient(45deg, #1e88e5, #0d47a1)' },
+              }}
+            >
               Register New Pharmacist
             </Button>
 
-            <TableContainer component={Card} sx={{ boxShadow: 3 }}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                boxShadow: 5,
+                borderRadius: 3,
+                overflow: 'hidden',
+              }}
+            >
               <Table>
-                <TableHead>
+                <TableHead sx={{ backgroundColor: '#e3f2fd' }}>
                   <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Specialization</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Phone</TableCell>
-                    <TableCell>Shift</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Specialization</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Phone</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Shift</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {pharmacists.map((row) => (
-                    <TableRow key={row._id}>
+                    <TableRow
+                      key={row._id}
+                      hover
+                      sx={{
+                        '&:nth-of-type(odd)': { backgroundColor: '#f1f8e9' },
+                        '&:hover': { backgroundColor: '#e3f2fd' },
+                      }}
+                    >
                       <TableCell>{row.pharmacistID}</TableCell>
                       <TableCell>{row.name}</TableCell>
                       <TableCell>{row.specialization}</TableCell>
                       <TableCell>{row.email}</TableCell>
                       <TableCell>{row.contactNumber}</TableCell>
                       <TableCell>{row.shift}</TableCell>
-                      <TableCell>{row.status}</TableCell>
+                      <TableCell>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: row.status === 'Active' ? '#2e7d32' : '#d32f2f',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {row.status}
+                        </Typography>
+                      </TableCell>
                       <TableCell>
                         <IconButton color="primary" onClick={() => handleOpen(row)}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDeletePharmacist(row._id)}>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDeletePharmacist(row._id)}
+                          sx={{ ml: 1 }}
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -170,44 +215,54 @@ const PharmacistManager = () => {
 
       {/* Modal for Adding/Editing Pharmacist */}
       <Modal open={open} onClose={handleClose}>
-        <Box sx={modalStyle}>
-          <Typography variant="h6" gutterBottom>
-            {editId ? 'Edit Pharmacist' : 'Register New Pharmacist'}
-          </Typography>
-          <Grid container spacing={2}>
-            {[
-              { label: 'Pharmacist ID', name: 'pharmacistID' },
-              { label: 'Name', name: 'name' },
-              { label: 'Specialization', name: 'specialization' },
-              { label: 'Email', name: 'email' },
-              { label: 'Phone Number', name: 'contactNumber' },
-              { label: 'Shift (e.g., Morning/Night)', name: 'shift' },
-              { label: 'Status (e.g., Active/Inactive)', name: 'status' },
-              { label: 'Address', name: 'address' },
-            ].map((field, index) => (
-              <Grid item xs={12} sm={6} key={index}>
-                <TextField
-                  fullWidth
-                  label={field.label}
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  margin="normal"
-                />
-              </Grid>
-            ))}
-          </Grid>
-          <Box mt={2} display="flex" justifyContent="flex-end">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSavePharmacist}
-              sx={{ mt: 2 }}
-            >
-              {editId ? 'Update Pharmacist' : 'Register Pharmacist'}
-            </Button>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Box sx={modalStyle}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'bold', color: '#1565c0' }}>
+              {editId ? 'Edit Pharmacist' : 'Register New Pharmacist'}
+            </Typography>
+            <Grid container spacing={2}>
+              {[
+                { label: 'Pharmacist ID', name: 'pharmacistID' },
+                { label: 'Name', name: 'name' },
+                { label: 'Specialization', name: 'specialization' },
+                { label: 'Email', name: 'email' },
+                { label: 'Phone Number', name: 'contactNumber' },
+                { label: 'Shift (e.g., Morning/Night)', name: 'shift' },
+                { label: 'Status (e.g., Active/Inactive)', name: 'status' },
+                { label: 'Address', name: 'address' },
+              ].map((field, index) => (
+                <Grid item xs={12} sm={6} key={index}>
+                  <TextField
+                    fullWidth
+                    label={field.label}
+                    name={field.name}
+                    value={formData[field.name]}
+                    onChange={handleChange}
+                    margin="normal"
+                    variant="outlined"
+                  />
+                </Grid>
+              ))}
+            </Grid>
+            <Box mt={2} display="flex" justifyContent="flex-end">
+              <Button
+                variant="contained"
+                onClick={handleSavePharmacist}
+                sx={{
+                  mt: 2,
+                  background: 'linear-gradient(45deg, #4caf50, #2e7d32)',
+                  '&:hover': { background: 'linear-gradient(45deg, #2e7d32, #1b5e20)' },
+                }}
+              >
+                {editId ? 'Update Pharmacist' : 'Register Pharmacist'}
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </motion.div>
       </Modal>
     </Container>
   );

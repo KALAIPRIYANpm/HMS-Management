@@ -1,9 +1,7 @@
-// src/api/outpatientAPI.js
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:5000/api/outpatients';
 
-// Get all outpatients
 export const getOutpatients = async () => {
   try {
     const res = await axios.get(BASE_URL);
@@ -14,7 +12,6 @@ export const getOutpatients = async () => {
   }
 };
 
-// Add a new outpatient
 export const addOutpatient = async (outpatient) => {
   try {
     const res = await axios.post(BASE_URL, outpatient);
@@ -25,7 +22,6 @@ export const addOutpatient = async (outpatient) => {
   }
 };
 
-// Update outpatient
 export const updateOutpatient = async (id, outpatient) => {
   try {
     const res = await axios.put(`${BASE_URL}/${id}`, outpatient);
@@ -36,23 +32,20 @@ export const updateOutpatient = async (id, outpatient) => {
   }
 };
 
-// Delete outpatient
 export const deleteOutpatient = async (id) => {
-  try {
-    await axios.delete(`${BASE_URL}/${id}`);
-  } catch (err) {
-    console.error('Error deleting outpatient:', err);
-    throw err;
-  }
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'DELETE',
+  });
+  return response.json();
 };
 
-// Toggle outpatient status (active/inactive)
-export const toggleOutpatientStatus = async (id, updatedOutpatient) => {
-  try {
-    const res = await axios.put(`${BASE_URL}/${id}`, updatedOutpatient);
-    return res.data;
-  } catch (err) {
-    console.error('Error toggling outpatient status:', err);
-    throw err;
-  }
+export const toggleOutpatientStatus = async (id, data) => {
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
 };
