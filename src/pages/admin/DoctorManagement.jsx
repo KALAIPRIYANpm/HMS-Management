@@ -17,7 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import { motion } from "framer-motion"; // ✅ Added Framer Motion
-
+  
 const DoctorManagement = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
